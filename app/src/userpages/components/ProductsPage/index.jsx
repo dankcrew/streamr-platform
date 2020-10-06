@@ -66,11 +66,8 @@ const ProductsPage = () => {
 
     useEffect(() => {
         dispatch(getMyProducts(filter))
-    }, [dispatch, filter])
-
-    useEffect(() => {
-        loadDataUnionStats()
-    }, [loadDataUnionStats])
+            .then(loadDataUnionStats)
+    }, [dispatch, filter, loadDataUnionStats])
 
     return (
         <Layout
