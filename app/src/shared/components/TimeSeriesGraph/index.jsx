@@ -107,9 +107,7 @@ const UnstyledTimeSeriesGraph = ({ graphData, shownDays, isLoading, ...props }: 
     return (
         <Container {...props}>
             {isLoading && (
-                <Spinner
-                    size="large"
-                    color="white"
+                <div
                     // eslint-disable-next-line react/jsx-curly-brace-presence
                     css={`
                         position: absolute;
@@ -117,7 +115,12 @@ const UnstyledTimeSeriesGraph = ({ graphData, shownDays, isLoading, ...props }: 
                         top: 50%;
                         transform: translate(-50%, -50%);
                     `}
-                />
+                >
+                    <Spinner
+                        size="large"
+                        color="white"
+                    />
+                </div>
             )}
             {!isLoading && (
                 <PlotContainer>
