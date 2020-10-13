@@ -28,6 +28,7 @@ import DeployTransaction from '$shared/utils/DeployTransaction'
 import TransactionError from '$shared/errors/TransactionError'
 import routes from '$routes'
 import type { Secret } from './types'
+import Transaction from '$shared/utils/Transaction'
 
 export const getStreamrEngineAddresses = (): Array<string> => {
     const addressesString = process.env.STREAMR_ENGINE_NODE_ADDRESSES || ''
@@ -137,8 +138,7 @@ export const createJoinPartStream = async (account: Address, productId: ProductI
     return stream
 }
 
-// eslint-disable-next-line camelcase
-const deprecated_getAdminFeeInEther = (adminFee: number) => {
+const getAdminFeeInEther = (adminFee: number) => {
     if (adminFee <= 0 || adminFee > 1) {
         throw new Error(`${adminFee} is not a valid admin fee`)
     }
@@ -178,7 +178,7 @@ const deprecated_deployContract = (productId: ProductId, adminFee: number): Smar
                 joinPartStream.id,
                 tokenAddress,
                 blockFreezePeriodSeconds,
-                deprecated_getAdminFeeInEther(adminFee),
+                getAdminFeeInEther(adminFee),
             ]
             const web3Contract = new web3.eth.Contract(contract.abi)
             const deployer = web3Contract.deploy({
@@ -302,7 +302,7 @@ const deprecated_getCommunityContract = (address: DataUnionId, usePublicNode: bo
 }
 
 const whitelist = [
-    '0x838D899ef5A89689d61329AA64C1a799c21a1693',
+    '0xCe4302EE40D8BA2EfE3D973bd585D1C0ED90b374',
     '0xaF79F2DE50AC857320098331B09f0b05a5CB5C50',
 ].map((s) => s.toLowerCase())
 
@@ -369,16 +369,66 @@ export const getAdminFee = async (address: DataUnionId, usePublicNode: boolean =
     throw new Error('unknow DU version')
 }
 
-// eslint-disable-next-line camelcase
-const deprecated_setAdminFee = (address: DataUnionId, adminFee: number): SmartContractTransaction => (
-    send(deprecated_getCommunityContract(address).methods.setAdminFee(deprecated_getAdminFeeInEther(adminFee)), {
-        gas: gasLimits.UPDATE_ADMIN_FEE,
-    })
-)
+export const setAdminFee = (address: DataUnionId, adminFee: number): SmartContractTransaction => {
+    const web3 = getWeb3()
+    const emitter = new EventEmitter()
+    const errorHandler = (error: Error) => {
+        console.warn(error)
+        emitter.emit('error', error)
+    }
+    const tx = new Transaction(emitter)
+    Promise.all([
+        web3.getDefaultAccount(),
+        getDataUnionVersion(address),
+        checkEthereumNetworkIsCorrect(web3),
+    ])
+        .then(([account, version]) => {
+            if (version === 2) {
+                const client = createClient()
 
-export const setAdminFee = (address: DataUnionId, adminFee: number): SmartContractTransaction => (
-    deprecated_setAdminFee(address, adminFee)
-)
+                emitter.emit('transactionHash')
+
+                client.setAdminFee(getAdminFeeInEther(adminFee), {
+                    dataUnionAddress: address,
+                })
+                    .then((receipt) => {
+                        if (parseInt(receipt.status, 16) === 0) {
+                            errorHandler(new TransactionError(I18n.t('error.txFailed'), receipt))
+                        } else {
+                            emitter.emit('receipt', receipt)
+                        }
+                    }, errorHandler)
+            } else if (version === 1) {
+                const method = deprecated_getCommunityContract(address).methods.setAdminFee(getAdminFeeInEther(adminFee))
+                method.send({
+                    gas: gasLimits.UPDATE_ADMIN_FEE,
+                    from: account,
+                })
+                    .on('error', (error, receipt) => {
+                        if (receipt) {
+                            errorHandler(new TransactionError(error.message, receipt))
+                        } else {
+                            errorHandler(error)
+                        }
+                    })
+                    .on('transactionHash', (hash) => {
+                        emitter.emit('transactionHash', hash)
+                    })
+                    .on('receipt', (receipt) => {
+                        if (parseInt(receipt.status, 16) === 0) {
+                            errorHandler(new TransactionError(I18n.t('error.txFailed'), receipt))
+                        } else {
+                            emitter.emit('receipt', receipt)
+                        }
+                    })
+                    .catch(errorHandler)
+            } else {
+                throw new Error('Unknow DU version')
+            }
+        }, errorHandler)
+
+    return tx
+}
 
 // eslint-disable-next-line camelcase
 const deprecated_getDataUnionStats = (id: DataUnionId): ApiResult<Object> => get({

@@ -54,8 +54,9 @@ const StyledListContainer = styled(ListContainer)`
 `
 
 const Stats = () => {
-    const { loadDataUnion } = useController()
+    const { loadDataUnion, loadContractProductSubscription } = useController()
     const product = useProduct()
+    const { id: productId } = product
     const contractProduct = useContractProduct()
 
     const { subscriberCount } = contractProduct || {}
@@ -85,6 +86,12 @@ const Stats = () => {
     }, [beneficiaryAddress, startPolling, stopPolling])
 
     useEffect(() => {
+        if (productId) {
+            loadContractProductSubscription(productId)
+        }
+    }, [productId, loadContractProductSubscription])
+
+    useEffect(() => {
         if (dataUnionDeployed && beneficiaryAddress) {
             loadDataUnion(beneficiaryAddress)
         }
@@ -111,19 +118,21 @@ const Stats = () => {
         >
             <CoreHelmet title={I18n.t('userpages.title.stats')} />
             <StyledListContainer>
-                <div className={styles.statBox}>
-                    {!dataUnionDeployed && isEthereumAddress(beneficiaryAddress) && (
+                {!dataUnionDeployed && isEthereumAddress(beneficiaryAddress) && (
+                    <div className={styles.statBox}>
                         <DataUnionPending />
-                    )}
-                    {!!dataUnionDeployed && stats && (
-                        <ProductStat.List items={stats} />
-                    )}
-                </div>
+                    </div>
+                )}
                 {!!dataUnionDeployed && (
                     <React.Fragment>
+                        <div className={styles.statBox}>
+                            {stats && (
+                                <ProductStat.List items={stats} />
+                            )}
+                        </div>
                         <div className={styles.graphs}>
                             <div className={styles.memberCount}>
-                                {!!dataUnionDeployed && !!memberCount && (
+                                {!!memberCount && (
                                     <React.Fragment>
                                         <TimeSeriesGraph.Header>
                                             <ProductStat.Title>
@@ -143,7 +152,7 @@ const Stats = () => {
                                 )}
                             </div>
                             <div className={styles.graphBox}>
-                                {!!dataUnionDeployed && product && (
+                                {product && (
                                     <React.Fragment>
                                         <TimeSeriesGraph.Header>
                                             <ProductStat.Title>
@@ -193,7 +202,7 @@ const StatsWrap = () => {
     const { isPending: loadPending } = usePending('product.LOAD')
     const { isPending: permissionsPending } = usePending('product.PERMISSIONS')
 
-    if (!hasLoaded || loadPending || permissionsPending) {
+    if (!hasLoaded || !product || loadPending || permissionsPending) {
         return <LoadingView />
     }
 
