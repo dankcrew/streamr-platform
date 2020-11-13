@@ -122,13 +122,18 @@ export function useEditableProductActions() {
         }))
         touch('pricePerSecond')
     }, [commit, touch])
-    const updateBeneficiaryAddress = useCallback((beneficiaryAddress: $ElementType<Product, 'beneficiaryAddress'>) => {
-        commit('Update beneficiary address', (p) => ({
-            ...p,
-            beneficiaryAddress,
-        }))
-        touch('beneficiaryAddress')
-    }, [commit, touch])
+    const updateBeneficiaryAddress = useCallback(
+        (beneficiaryAddress: $ElementType<Product, 'beneficiaryAddress'>, didTouch: boolean = true) => {
+            commit('Update beneficiary address', (p) => ({
+                ...p,
+                beneficiaryAddress,
+            }))
+            if (didTouch) {
+                touch('beneficiaryAddress')
+            }
+        },
+        [commit, touch],
+    )
     const updateType = useCallback((type: $ElementType<Product, 'type'>) => {
         commit('Update type', (p) => ({
             ...p,
