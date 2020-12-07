@@ -693,6 +693,21 @@ msgstr "You need to link the current Ethereum account to see your transaction hi
 msgid "userpages.members.filterMembers"
 msgstr "Filter members"
 
+msgid "userpages.dataunions.noCreatedDataUnions.title"
+msgstr "You haven’t created any Data Unions"
+
+msgid "userpages.dataunions.noCreatedDataUnions.message"
+msgstr "Learn how to create one in the <a href=\"%{link}\">Docs</a>."
+
+msgid "userpages.dataunions.noDataUnionResult.title"
+msgstr "No results."
+
+msgid "userpages.dataunions.noDataUnionResult.message"
+msgstr "We couldn't find any Data Unions that match your search."
+
+msgid "userpages.dataunions.noDataUnionResult.clearFilters"
+msgstr "Clear filters"
+
 msgid "userpages.dashboards.createDashboard"
 msgstr "Create dashboard"
 
