@@ -131,6 +131,9 @@ msgstr "Dashboards"
 msgid "userpages.title.products"
 msgstr "Products"
 
+msgid "userpages.title.dataunions"
+msgstr "Data Unions"
+
 msgid "userpages.title.subscriptions"
 msgstr "Subscriptions"
 
@@ -692,6 +695,9 @@ msgstr "You need to link the current Ethereum account to see your transaction hi
 
 msgid "userpages.members.filterMembers"
 msgstr "Filter members"
+
+msgid "userpages.dataunions.createDataUnion"
+msgstr "Create Data Union"
 
 msgid "userpages.dataunions.noCreatedDataUnions.title"
 msgstr "You haven’t created any Data Unions"
