@@ -137,17 +137,18 @@ export const createJoinPartStream = async (account: Address, productId: ProductI
     return stream
 }
 
-const getAdminFeeInEther = (adminFee: number) => {
-    if (adminFee <= 0 || adminFee > 1) {
+// eslint-disable-next-line camelcase
+const deprecated_getAdminFeeInEther = (adminFee: string) => {
+    if (+adminFee <= 0 || +adminFee > 1) {
         throw new Error(`${adminFee} is not a valid admin fee`)
     }
 
     const web3 = getWeb3()
-    return web3.utils.toWei(`${adminFee}`, 'ether')
+    return web3.utils.toWei(adminFee, 'ether')
 }
 
 // eslint-disable-next-line camelcase
-const deprecated_deployDataUnion = (productId: ProductId, adminFee: number): SmartContractTransaction => {
+const deprecated_deployDataUnion = (productId: ProductId, adminFee: string): SmartContractTransaction => {
     const web3 = getWeb3()
     const emitter = new EventEmitter()
     const errorHandler = (error: Error) => {
@@ -177,7 +178,7 @@ const deprecated_deployDataUnion = (productId: ProductId, adminFee: number): Sma
                 joinPartStream.id,
                 tokenAddress,
                 blockFreezePeriodSeconds,
-                getAdminFeeInEther(adminFee),
+                deprecated_getAdminFeeInEther(adminFee),
             ]
             const web3Contract = new web3.eth.Contract(contract.abi)
             const deployer = web3Contract.deploy({
@@ -238,7 +239,7 @@ export const createClient = (options: CreateClient = {}) => {
     })
 }
 
-export const deployDataUnion2 = (productId: ProductId, adminFee: number): SmartContractTransaction => {
+export const deployDataUnion2 = (productId: ProductId, adminFee: string): SmartContractTransaction => {
     const web3 = getWeb3()
     const emitter = new EventEmitter()
     const errorHandler = (error: Error) => {
@@ -261,7 +262,7 @@ export const deployDataUnion2 = (productId: ProductId, adminFee: number): SmartC
 
             return client.deployDataUnion({
                 dataUnionName: productId,
-                adminFee,
+                adminFee: +adminFee,
                 joinPartAgents: getStreamrEngineAddresses(),
             })
         })
@@ -288,7 +289,7 @@ export const getDefaultDataUnionVersion = () => (
 
 type DeployDataUnion = {
     productId: ProductId,
-    adminFee: number,
+    adminFee: string,
     version?: number,
 }
 
@@ -356,7 +357,6 @@ const deprecated_getAdminFee = async (address: DataUnionId, usePublicNode: boole
 
 export const getAdminFee = async (address: DataUnionId, usePublicNode: boolean = false) => {
     const version = await getDataUnionVersion(address, usePublicNode)
-    const web3 = usePublicNode ? getPublicWeb3() : getWeb3()
 
     if (version === 2) {
         const client = createClient({
@@ -366,7 +366,7 @@ export const getAdminFee = async (address: DataUnionId, usePublicNode: boolean =
             dataUnionAddress: address,
         })
 
-        return web3.utils.fromWei(adminFee.toString(), 'ether')
+        return `${adminFee}`
     } else if (version === 1) {
         return deprecated_getAdminFee(address, usePublicNode)
     }
@@ -374,7 +374,7 @@ export const getAdminFee = async (address: DataUnionId, usePublicNode: boolean =
     throw new Error('unknow DU version')
 }
 
-export const setAdminFee = (address: DataUnionId, adminFee: number): SmartContractTransaction => {
+export const setAdminFee = (address: DataUnionId, adminFee: string): SmartContractTransaction => {
     const web3 = getWeb3()
     const emitter = new EventEmitter()
     const errorHandler = (error: Error) => {
@@ -393,7 +393,7 @@ export const setAdminFee = (address: DataUnionId, adminFee: number): SmartContra
 
                 emitter.emit('transactionHash')
 
-                client.setAdminFee(getAdminFeeInEther(adminFee), {
+                client.setAdminFee(+adminFee, {
                     dataUnionAddress: address,
                 })
                     .then((receipt) => {
@@ -404,7 +404,7 @@ export const setAdminFee = (address: DataUnionId, adminFee: number): SmartContra
                         }
                     }, errorHandler)
             } else if (version === 1) {
-                const method = deprecated_getCommunityContract(address).methods.setAdminFee(getAdminFeeInEther(adminFee))
+                const method = deprecated_getCommunityContract(address).methods.setAdminFee(deprecated_getAdminFeeInEther(adminFee))
                 method.send({
                     gas: gasLimits.UPDATE_ADMIN_FEE,
                     from: account,
