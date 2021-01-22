@@ -3,7 +3,6 @@
 import React, { useEffect } from 'react'
 import { isDataUnionProduct, isPaidProduct } from '$mp/utils/product'
 import useProduct from '$mp/containers/ProductController/useProduct'
-import useDataUnionStats from './useDataUnionStats'
 import useDataUnionServerStats from './useDataUnionServerStats'
 import useDataUnion from '$mp/containers/ProductController/useDataUnion'
 import useContractProduct from '$mp/containers/ProductController/useContractProduct'
@@ -18,6 +17,8 @@ import Terms from '$mp/components/ProductPage/Terms'
 import ProductPage from '$shared/components/ProductPage'
 import Segment from '$shared/components/Segment'
 
+import usePreviewStats from './usePreviewStats'
+
 const ProductDetailsPage = () => {
     const product = useProduct()
     const contractProduct = useContractProduct()
@@ -29,7 +30,7 @@ const ProductDetailsPage = () => {
     const isDuDeployed = !!isDataUnion && !!dataUnionDeployed && isEthereumAddress(beneficiaryAddress)
 
     const { startPolling, stopPolling, totalEarnings, memberCount } = useDataUnionServerStats()
-    const stats = useDataUnionStats({
+    const stats = usePreviewStats({
         beneficiaryAddress,
         created,
         adminFee,
