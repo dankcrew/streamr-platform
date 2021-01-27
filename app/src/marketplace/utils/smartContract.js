@@ -25,7 +25,6 @@ import type { NumberString } from '$shared/flowtype/common-types'
 
 import Transaction from '$shared/utils/Transaction'
 import DeployTransaction from '$shared/utils/DeployTransaction'
-import { gasLimits } from '$shared/utils/constants'
 
 export type Callable = {
     call: () => SmartContractCall<*>,
@@ -94,7 +93,7 @@ export const send = (method: Sendable, options?: {
     ])
         .then(([account]) => {
             method.send({
-                gas: (options && options.gas) || gasLimits.DEFAULT,
+                gas: (options && options.gas) || undefined,
                 from: account,
                 value: options && options.value,
             })
@@ -148,7 +147,7 @@ export const deploy = (contract: SmartContractMetadata, args: Array<any>, option
             })
             deployer
                 .send({
-                    gas: (options && options.gas) || gasLimits.DEPLOY_DATA_UNION,
+                    gas: (options && options.gas) || undefined,
                     from: account,
                 })
                 .on('error', errorHandler)
