@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react'
 import { MDXProvider } from '@mdx-js/react'
 import SimpleReactLightbox from 'simple-react-lightbox'
-import { withRouter } from 'react-router-dom'
+import { useLocation } from 'react-router-dom'
 import Layout from '$shared/components/Layout'
 import Navigation from './Navigation'
 import Components from '$docs/mdxConfig'
@@ -14,11 +14,13 @@ import BusLine from '$shared/components/BusLine'
 import Button from '$shared/components/Button'
 import SvgIcon from '$shared/components/SvgIcon'
 
-const DocsLayout = ({ nav = <DocsNav />, location, staticContext, ...props }) => {
+const DocsLayout = ({ nav = <DocsNav />, staticContext, ...props }) => {
+    const { pathname } = useLocation()
+
     const editFilePath = useMemo(() => {
         let path = null
         Object.values(docsMap).some((doc) => {
-            const found = Object.values(doc).find((subdoc) => subdoc.path === location.pathname)
+            const found = Object.values(doc).find((subdoc) => subdoc.path === pathname)
             if (found) {
                 path = found.filePath
                 return true
@@ -26,7 +28,7 @@ const DocsLayout = ({ nav = <DocsNav />, location, staticContext, ...props }) =>
             return false
         })
         return path
-    }, [location])
+    }, [pathname])
 
     return (
         <SimpleReactLightbox>
@@ -72,4 +74,4 @@ const DocsLayout = ({ nav = <DocsNav />, location, staticContext, ...props }) =>
     )
 }
 
-export default withRouter(DocsLayout)
+export default DocsLayout
